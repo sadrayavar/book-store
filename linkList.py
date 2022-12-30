@@ -1,5 +1,5 @@
-# former, next, ISBN, title, author, publisher, publishDate, category, supply, people
-# add remove edit get sort display
+# former, next, ISBN, title, author, publisher, pubDate, category, supply, people
+# edit sort display
 # 2915972317011, 'book name', 'sadra yavarzadeh herisi', 'entesharat sadrayalastLine', 2022012026, ['falsafe', 'comedy', 'dram', 'adventures', 'not adventures'], 999,  [4407469698, 4407469698, 4407469698]
 class Library:
     database = None
@@ -38,17 +38,18 @@ class Library:
             self.first = 0
         print()
 
-    def add(self, ISBN, title, author, publisher, publishDate, category, supply, people):
+    def add(self, ISBN, title, author, publisher, pubDate, category, supply, people):
+        temp = self.getPlace("ISBN", ISBN)
 
-        if (self.getPlace(ISBN) == None):
+        if (temp == None):
             formerLast = self.last  # save last in temp
             self.setLast()  # increment last
             self.editLastBook(formerLast)  # replace None in the next parameter
             book = self.paramToString(formerLast, None, ISBN, title,
-                                      author, publisher, publishDate, category, supply, people)
+                                      author, publisher, pubDate, category, supply, people)
             self.writeToDatabase(book, self.getNext())
         else:
-            print(f'ISBN {ISBN} is in the row: {self.getPlace(ISBN)}')
+            print(f'{ISBN} is already in the database: {temp[0]}')
 
     def remove(self, rowList):
         if isinstance(rowList, list):
@@ -57,19 +58,59 @@ class Library:
         else:
             self.writeToDatabase('\n', rowList)
 
-    def getPlace(self, id):
-        link = self.first
-        while (True):
-            book = self.readFromDatabase(link)
-            if (book == None):
+    def getPlace(self, searchParam, value):
+        if (searchParam == 'ISBN'):
+            key = 2
+        elif (searchParam == 'title'):
+            key = 3
+        elif (searchParam == 'author'):
+            key = 4
+        elif (searchParam == 'publisher'):
+            key = 5
+        elif (searchParam == 'pubDate'):
+            key = 6
+        elif (searchParam == 'category'):
+            key = 7
+        elif (searchParam == 'supply'):
+            key = 8
+        elif (searchParam == 'people'):
+            key = 9
+        else:
+            print('search parameter must be one of the values below:\ntitle\nauthor\npublisher\npubDate\ncategory\nsupply\npeople')
+            exit()
+
+        output = []
+        where = self.first
+        canBreak = False
+
+        while (where != 'None'):
+            book = self.readFromDatabase(where)
+            if (book == None):  # returns None if database is empty
                 return None
-            if (id == book[2]):
-                return link
-            else:
-                if (book[1] == 'None'):
-                    return None
-                else:
-                    link = book[1]
+
+            for i in range(len(book)):  # turn not list keys to list
+                if (not (isinstance(book[i], list))):
+                    temp = []
+                    temp.append(book[i])
+                    book[i] = temp
+
+            for item in book[key]:
+                if (value == item):  # add to output list
+                    output.append(where)
+                    where = book[1][0]
+                    break
+                else:  # go to next book if its not the last one
+                    if (book[1] == 'None'):
+                        canBreak = True
+                        break
+            where = book[1][0]
+            if (canBreak):
+                break
+
+        if (len(output) == 0):
+            return None
+        else:
+            return output
 
     # helper functions
 
@@ -132,13 +173,16 @@ class Library:
                 pass
         return book
 
-    def paramToString(self, former, next, ISBN, title, author, publisher, publishDate, category, supply, people):
+    def paramToString(self, former, next, ISBN, title, author, publisher, pubDate, category, supply, people):
         def temp(list):
             return ':'.join(str(item) for item in list)
-        return f'{former},{next},{ISBN},{title},{author},{publisher},{publishDate},{temp(category)},{supply},{temp(people)}\n'
+        return f'{former},{next},{ISBN},{title},{author},{publisher},{pubDate},{temp(category)},{supply},{temp(people)}\n'
 
 
 b = Library('database.csv', True)
-b.add(2915972317010, '', '', '', 0, [''], 0,  [1])
-b.add(2915972317011, '', '', '', 0, [''], 0,  [1])
-b.add(2915972317014, '', '', '', 0, [''], 0,  [1])
+b.add(2915972317010, '', '', '', 0, ['ali','hasan','qolam'], 0,  [1, 2, 3, 4])
+b.add(2915972317011, '', '', '', 0, ['ali','hasan'], 0,  [1, 2, 3])
+b.add(2915972317014, '', '', '', 0, ['ali',''], 0,  [1, 2])
+print(b.getPlace('category', 'hasan'))
+print(b.getPlace('category', 'qolam'))
+print(b.getPlace('category', 'ali'))
