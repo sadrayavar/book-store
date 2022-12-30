@@ -39,7 +39,8 @@ class Library:
         print()
 
     def add(self, ISBN, title, author, publisher, publishDate, category, supply, people):
-        if (True):
+
+        if (self.getPlace(ISBN) == None):
             formerLast = self.last  # save last in temp
             self.setLast()  # increment last
             self.editLastBook(formerLast)  # replace None in the next parameter
@@ -47,7 +48,22 @@ class Library:
                                       author, publisher, publishDate, category, supply, people)
             self.writeToDatabase(book, self.getNext())
         else:
-            print('book is already exists')
+            print(f'ISBN {ISBN} is in the row: {self.getPlace(ISBN)}')
+
+
+    def getPlace(self, id):
+        link = self.first
+        while (True):
+            book = self.readFromDatabase(link)
+            if (book == None):
+                return None
+            if (id == book[2]):
+                return link
+            else:
+                if (book[1] == 'None'):
+                    return None
+                else:
+                    link = book[1]
 
     # helper functions
 
@@ -117,9 +133,6 @@ class Library:
 
 
 b = Library('database.csv', True)
+b.add(2915972317010, '', '', '', 0, [''], 0,  [1])
 b.add(2915972317011, '', '', '', 0, [''], 0,  [1])
-b.add(2915972317011, '', '', '', 0, [''], 0,  [1])
-b.add(2915972317011, '', '', '', 0, [''], 0,  [1])
-b.add(2915972317011, '', '', '', 0, [''], 0,  [1])
-b.add(2915972317011, '', '', '', 0, [''], 0,  [1])
-b.get(2915972317011)
+b.add(2915972317014, '', '', '', 0, [''], 0,  [1])
