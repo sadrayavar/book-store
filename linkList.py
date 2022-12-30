@@ -50,6 +50,12 @@ class Library:
         else:
             print(f'ISBN {ISBN} is in the row: {self.getPlace(ISBN)}')
 
+    def remove(self, rowList):
+        if isinstance(rowList, list):
+            for row in rowList:
+                self.writeToDatabase('\n', row)
+        else:
+            self.writeToDatabase('\n', rowList)
 
     def getPlace(self, id):
         link = self.first
