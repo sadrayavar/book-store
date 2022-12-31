@@ -35,36 +35,35 @@ class Library:
                 open(databaseName, 'x')
             except:  # delete current database contents
                 open(databaseName, 'w').write('')
-            self.first = 0
-        print()
+            self.first = 1
 
     def add(self, ISBN, title, author, publisher, pubDate, category, supply, people):
         # check if the book is added already
-        temp = self.search("ISBN", ISBN)
+        doesExist = self.search("ISBN", ISBN)
+        if (doesExist):
+            print(f'{ISBN} is already in the database: {doesExist[0]}')
+        else:
+            '''
+            data:
+            last book place
+            next empty row = last book place (after add)
 
-        '''
-         data:
-         last book place
-         next empty row = last book place (after add)
-
-         functions:
-         1- get next empty row
-         2- edit last book to point to the next empty row
-         3- insert book to the next empty row
-         4- update last book place
-        '''
-
-        if (temp == None):
+            functions:
+            1- get next empty row
+            2- edit last book to point to the next empty row
+            3- insert book to the next empty row
+            4- update last book place
+            '''
             lastBookPlace = self.last
             nextEmptyRow = None
 
             # get next empty row
             if (len(self.emptyRows) == 0):
                 if (self.last == None):
-                    nextEmptyRow = 0
+                    nextEmptyRow = 1
                 else:
                     tempLines = open(self.database, 'r').readlines()
-                    nextEmptyRow = len(tempLines)
+                    nextEmptyRow = len(tempLines)+1
             else:
                 nextEmptyRow = self.emptyRows.pop()
 
@@ -81,9 +80,6 @@ class Library:
 
             # update last book place
             self.last = nextEmptyRow
-
-        else:
-            print(f'{ISBN} is already in the database: {temp[0]}')
 
     def remove(self, rowList):
         def temp(where):
@@ -104,7 +100,7 @@ class Library:
             # edit book
             self.writeToDatabase('\n', place)
 
-            # add empty row to emptyRows
+            # add empty row to emptyRows list
             self.emptyRows.append(place)
 
         if isinstance(rowList, list):
@@ -148,7 +144,7 @@ class Library:
         while (where != 'None'):
             book = self.readFromDatabase(where)
             if (book == None):  # returns None if database is empty
-                return None
+                return False
 
             turnBookItemsToList(book)
 
@@ -165,13 +161,14 @@ class Library:
                 break
 
         if (len(output) == 0):
-            return None
+            return False
         else:
             return output
 
     # helper functions
 
     def readFromDatabase(self, where):
+        where -= 1
         try:
             rows = open(self.database, 'r').readlines()
             return self.stringToList(rows[where])
@@ -179,6 +176,7 @@ class Library:
             return None
 
     def writeToDatabase(self, what, where):
+        where -= 1
         if (not (isinstance(what, str))):
             what = self.paramToString(
                 what[0], what[1], what[2], what[3], what[4], what[5], what[6], what[7], what[8], what[9])
@@ -217,18 +215,12 @@ b = Library('database.csv', True)
 
 b.add(2915972317010, '', '', '', 0, [
       'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
-
 b.add(2915972317011, '', '', '', 0, ['ali', 'hasan'], 0,  [1, 2, 3])
-
 b.add(2915972317014, '', '', '', 0, ['ali', ''], 0,  [1, 2])
-
 b.remove(2915972317011)
-
 b.add(2975972317010, '', '', '', 0, [
       'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
-
 b.add(2915973317011, '', '', '', 0, ['ali', 'hasan'], 0,  [1, 2, 3])
-
 b.add(2914972317014, '', '', '', 0, ['ali', ''], 0,  [1, 2])
 print(b.search('category', 'hasan'))
 print(b.search('category', 'qolam'))
