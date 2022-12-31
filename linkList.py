@@ -54,9 +54,31 @@ class Library:
     def remove(self, rowList):
         if isinstance(rowList, list):
             for row in rowList:
-                self.writeToDatabase('\n', row)
+                place = self.getPlace('ISBN', row)[0]
+                this = self.readFromDatabase(place)
+
+                former = self.readFromDatabase(this[0])
+                former[1] = this[1]
+                self.writeToDatabase(former, this[0])
+
+                next = self.readFromDatabase(this[1])
+                next[0] = this[0]
+                self.writeToDatabase(next, this[1])
+
+                self.writeToDatabase('\n', place)
         else:
-            self.writeToDatabase('\n', rowList)
+            place = self.getPlace('ISBN', rowList)[0]
+            this = self.readFromDatabase(place)
+
+            former = self.readFromDatabase(this[0])
+            former[1] = this[1]
+            self.writeToDatabase(former, this[0])
+
+            next = self.readFromDatabase(this[1])
+            next[0] = this[0]
+            self.writeToDatabase(next, this[1])
+
+            self.writeToDatabase('\n', place)
 
     def getPlace(self, searchParam, value):
         if (searchParam == 'ISBN'):
@@ -149,6 +171,10 @@ class Library:
             return None
 
     def writeToDatabase(self, what, where):
+        if (not (isinstance(what, str))):
+            what = self.paramToString(
+                what[0], what[1], what[2], what[3], what[4], what[5], what[6], what[7], what[8], what[9])
+
         rows = open(self.database, 'r').readlines()
 
         if (len(rows) <= where):
@@ -180,9 +206,11 @@ class Library:
 
 
 b = Library('database.csv', True)
-b.add(2915972317010, '', '', '', 0, ['ali','hasan','qolam'], 0,  [1, 2, 3, 4])
-b.add(2915972317011, '', '', '', 0, ['ali','hasan'], 0,  [1, 2, 3])
-b.add(2915972317014, '', '', '', 0, ['ali',''], 0,  [1, 2])
+b.add(2915972317010, '', '', '', 0, [
+      'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
+b.add(2915972317011, '', '', '', 0, ['ali', 'hasan'], 0,  [1, 2, 3])
+b.add(2915972317014, '', '', '', 0, ['ali', ''], 0,  [1, 2])
 print(b.getPlace('category', 'hasan'))
 print(b.getPlace('category', 'qolam'))
 print(b.getPlace('category', 'ali'))
+b.remove(2915972317011)
