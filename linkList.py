@@ -39,48 +39,81 @@ class Library:
         print()
 
     def add(self, ISBN, title, author, publisher, pubDate, category, supply, people):
-        temp = self.getPlace("ISBN", ISBN)
+        # check if the book is added already
+        temp = self.search("ISBN", ISBN)
+
+        '''
+         data:
+         last book place
+         next empty row = last book place (after add)
+
+         functions:
+         1- get next empty row
+         2- edit last book to point to the next empty row
+         3- insert book to the next empty row
+         4- update last book place
+        '''
 
         if (temp == None):
-            formerLast = self.last  # save last in temp
-            self.setLast()  # increment last
-            self.editLastBook(formerLast)  # replace None in the next parameter
-            book = self.paramToString(formerLast, None, ISBN, title,
-                                      author, publisher, pubDate, category, supply, people)
-            self.writeToDatabase(book, self.getNext())
+            lastBookPlace = self.last
+            nextEmptyRow = None
+
+            # get next empty row
+            if (len(self.emptyRows) == 0):
+                if (self.last == None):
+                    nextEmptyRow = 0
+                else:
+                    tempLines = open(self.database, 'r').readlines()
+                    nextEmptyRow = len(tempLines)
+            else:
+                nextEmptyRow = self.emptyRows.pop()
+
+            # edit last book to point to the next empty row
+            if (lastBookPlace != None):
+                lastBook = self.readFromDatabase(lastBookPlace)
+                lastBook[1] = nextEmptyRow
+                self.writeToDatabase(lastBook, lastBookPlace)
+
+            # insert book to the next empty row
+            book = self.paramToString(
+                lastBookPlace, None, ISBN, title, author, publisher, pubDate, category, supply, people)
+            self.writeToDatabase(book, nextEmptyRow)
+
+            # update last book place
+            self.last = nextEmptyRow
+
         else:
             print(f'{ISBN} is already in the database: {temp[0]}')
 
     def remove(self, rowList):
-        if isinstance(rowList, list):
-            for row in rowList:
-                place = self.getPlace('ISBN', row)[0]
-                this = self.readFromDatabase(place)
-
-                former = self.readFromDatabase(this[0])
-                former[1] = this[1]
-                self.writeToDatabase(former, this[0])
-
-                next = self.readFromDatabase(this[1])
-                next[0] = this[0]
-                self.writeToDatabase(next, this[1])
-
-                self.writeToDatabase('\n', place)
-        else:
-            place = self.getPlace('ISBN', rowList)[0]
+        def temp(where):
+            # define book and bookplace
+            place = self.search('ISBN', where)[0]
             this = self.readFromDatabase(place)
 
+            # define former book
             former = self.readFromDatabase(this[0])
             former[1] = this[1]
             self.writeToDatabase(former, this[0])
 
+            # define next book
             next = self.readFromDatabase(this[1])
             next[0] = this[0]
             self.writeToDatabase(next, this[1])
 
+            # edit book
             self.writeToDatabase('\n', place)
 
-    def getPlace(self, searchParam, value):
+            # add empty row to emptyRows
+            self.emptyRows.append(place)
+
+        if isinstance(rowList, list):
+            for row in rowList:
+                temp(row)
+        else:
+            temp(rowList)
+
+    def search(self, searchParam, value):
         if (searchParam == 'ISBN'):
             key = 2
         elif (searchParam == 'title'):
@@ -105,26 +138,28 @@ class Library:
         where = self.first
         canBreak = False
 
-        while (where != 'None'):
-            book = self.readFromDatabase(where)
-            if (book == None):  # returns None if database is empty
-                return None
-
+        def turnBookItemsToList(book):
             for i in range(len(book)):  # turn not list keys to list
                 if (not (isinstance(book[i], list))):
                     temp = []
                     temp.append(book[i])
                     book[i] = temp
 
+        while (where != 'None'):
+            book = self.readFromDatabase(where)
+            if (book == None):  # returns None if database is empty
+                return None
+
+            turnBookItemsToList(book)
+
             for item in book[key]:
                 if (value == item):  # add to output list
                     output.append(where)
                     where = book[1][0]
                     break
-                else:  # go to next book if its not the last one
-                    if (book[1] == 'None'):
-                        canBreak = True
-                        break
+                elif (book[1][0] == 'None'):
+                    canBreak = True
+                    break
             where = book[1][0]
             if (canBreak):
                 break
@@ -135,33 +170,6 @@ class Library:
             return output
 
     # helper functions
-
-    def editLastBook(self, formerLast):
-        lastBook = self.readFromDatabase(formerLast)
-        if (lastBook != None):
-            lastBook[1] = self.last
-            l = lastBook
-            tempBook = self.paramToString(l[0], l[1], l[2], l[3], l[4],
-                                          l[5], l[6], l[7], l[8], l[9])
-            self.writeToDatabase(tempBook, formerLast)
-
-    def getNext(self):
-        if (self.last == None):
-            return 2
-        else:
-            if (len(self.emptyRows) == 0):
-                return self.last + 2
-            else:
-                return self.emptyRows[-1]
-
-    def setLast(self):
-        if (self.last == None):
-            self.last = 0
-        else:
-            if (len(self.emptyRows) == 0):
-                self.last += 1
-            else:
-                self.emptyRows.pop()
 
     def readFromDatabase(self, where):
         try:
@@ -206,11 +214,22 @@ class Library:
 
 
 b = Library('database.csv', True)
+
 b.add(2915972317010, '', '', '', 0, [
       'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
+
 b.add(2915972317011, '', '', '', 0, ['ali', 'hasan'], 0,  [1, 2, 3])
+
 b.add(2915972317014, '', '', '', 0, ['ali', ''], 0,  [1, 2])
-print(b.getPlace('category', 'hasan'))
-print(b.getPlace('category', 'qolam'))
-print(b.getPlace('category', 'ali'))
+
 b.remove(2915972317011)
+
+b.add(2975972317010, '', '', '', 0, [
+      'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
+
+b.add(2915973317011, '', '', '', 0, ['ali', 'hasan'], 0,  [1, 2, 3])
+
+b.add(2914972317014, '', '', '', 0, ['ali', ''], 0,  [1, 2])
+print(b.search('category', 'hasan'))
+print(b.search('category', 'qolam'))
+print(b.search('category', 'ali'))
