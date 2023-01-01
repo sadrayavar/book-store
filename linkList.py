@@ -78,25 +78,27 @@ class LibraryBackEnd:
         self.last = nextEmptyRow
 
     def remove(self, bookPlace):
-        def temp(place):
-            # define book and bookplace
-            this = self.readFromDatabase(place)
+        def temp(bookPlace):
+            # define book and bookPlace
+            book = self.readFromDatabase(bookPlace)
 
             # define former book
-            former = self.readFromDatabase(this[0])
-            former[1] = this[1]
-            self.writeToDatabase(former, this[0])
+            if book[0] != 'None':
+                former = self.readFromDatabase(book[0])
+                former[1] = book[1]
+                self.writeToDatabase(former, book[0])
 
             # define next book
-            next = self.readFromDatabase(this[1])
-            next[0] = this[0]
-            self.writeToDatabase(next, this[1])
+            if book[1] != 'None':
+                next = self.readFromDatabase(book[1])
+                next[0] = book[0]
+                self.writeToDatabase(next, book[1])
 
             # edit book
-            self.writeToDatabase('\n', place)
+            self.writeToDatabase('\n', bookPlace)
 
             # add empty row to emptyRows list
-            self.emptyRows.append(place)
+            self.emptyRows.append(bookPlace)
 
         if isinstance(bookPlace, list):
             for place in bookPlace:
@@ -448,22 +450,3 @@ class LibraryFrontEnd:
 
     def displayBooks(self):
         pass
-
-
-# tests
-'''
-b = LibraryBackEnd('database.csv', True)
-b.add(5, '', '', '', 0, [
-      'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
-b.add(2, '', '', '', 0, ['ali', 'hasan'], 0,  [1, 2, 3])
-b.add(4, '', '', '', 0, ['ali', ''], 0,  [1, 2])
-# b.remove(2915972317011)
-b.add(3, '', '', '', 0, [
-      'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
-b.add(1, '', '', '', 0, ['ali', ''], 0,  [1, 2])
-print(b.search('category', 'hasan'))
-print(b.search('category', 'qolam'))
-print(b.search('category', 'ali'))
-b.sort('ISBN')
-'''
-LibraryFrontEnd()
