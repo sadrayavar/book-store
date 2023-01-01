@@ -166,9 +166,29 @@ class LibraryBackEnd:
             return False
         else:
             return output
-
-    def sort(self):
-        pass
+    def sort(self,sortParam):
+        noOfBooks=len(open(self.database,'r').readlines())
+        if (noOfBooks<2):
+            return
+        if (sortParam=="ISBN"):
+            for i in range(noOfBooks-1):
+                book=self.readFromDatabase(i)
+                nextBook=self.readFromDatabase(i+1)
+                if (book[2]>nextBook[2]):
+                    holder=book[:2]
+                    book=nextBook[:2]+book[2:]
+                    nextBook=holder+nextBook[2:]
+                    self.remove(i+1)
+                    self.writeToDatabase(book+'\n',i+1) 
+                    self.remove(i)
+                    self.writeToDatabase(nextBook+'\n',i)
+    def display(self):
+        noOfBooks=len(open(self.database, 'r').readlines())
+        i=0
+        while(i<noOfBooks):
+            book=self.readFromDatabase(i)
+            i+=1
+            print(book[2:])
 
     def edit(self):
         pass
@@ -450,3 +470,19 @@ class LibraryFrontEnd:
 
     def displayBooks(self):
         pass
+#tests
+
+b = LibraryBackEnd('database.csv', True)
+b.add(5, '', '', '', 0, [
+      'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
+b.add(2, '', '', '', 0, ['ali', 'hasan'], 0,  [1, 2, 3])
+b.add(4, '', '', '', 0, ['ali', ''], 0,  [1, 2])
+# b.remove(2915972317011)
+b.add(3, '', '', '', 0, [
+      'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
+b.add(1, '', '', '', 0, ['ali', ''], 0,  [1, 2])
+#print(b.search('category', 'hasan'))
+#print(b.search('category', 'qolam'))
+#print(b.search('category', 'ali'))
+b.sort("ISBN")
+b.display()
