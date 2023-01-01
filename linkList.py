@@ -17,12 +17,12 @@ class LibraryBackEnd:
             for i in range(len(rows)):
 
                 # convert string to list
-                rows[i] = self.stringToList(
-                    rows[i])
-                if rows[i][0] == 'None':  # set first
-                    self.first = i
-                if rows[i][1] == 'None':  # set last
-                    self.last = i
+                rows[i] = self.stringToList(rows[i])
+                if rows[i] is not None:
+                    if rows[i][0] == 'None':  # set first
+                        self.first = i
+                    if rows[i][1] == 'None':  # set last
+                        self.last = i
 
             if (self.first == None):
                 print('Database does not have a first book')
@@ -77,10 +77,9 @@ class LibraryBackEnd:
         # update last book place
         self.last = nextEmptyRow
 
-    def remove(self, rowList):
-        def temp(where):
+    def remove(self, bookPlace):
+        def temp(place):
             # define book and bookplace
-            place = self.search('ISBN', where)[0]
             this = self.readFromDatabase(place)
 
             # define former book
@@ -99,13 +98,18 @@ class LibraryBackEnd:
             # add empty row to emptyRows list
             self.emptyRows.append(place)
 
-        if isinstance(rowList, list):
-            for row in rowList:
-                temp(row)
+        if isinstance(bookPlace, list):
+            for place in bookPlace:
+                temp(place)
         else:
-            temp(rowList)
+            temp(bookPlace)
 
     def search(self, searchParam, value):
+        try:
+            value = int(value)
+        except:
+            pass
+
         if (searchParam == 'ISBN'):
             key = 2
         elif (searchParam == 'title'):
@@ -127,7 +131,7 @@ class LibraryBackEnd:
             exit()
 
         output = []
-        where = self.first
+        where = self.first + 1
         canBreak = False
 
         def turnBookItemsToList(book):
@@ -195,20 +199,23 @@ class LibraryBackEnd:
         file.close()
 
     def stringToList(self, book):
-        book = book.split(',')
-        book[-1] = book[-1].split(':')
-        book[-3] = book[-3].split(':')
-        for i in range(len(book[-1])):
-            try:
-                book[-1][i] = int(book[-1][i])
-            except:
-                pass
-        for i in range(len(book)-1):
-            try:
-                book[i] = int(book[i])
-            except:
-                pass
-        return book
+        try:
+            book = book.split(',')
+            book[-1] = book[-1].split(':')
+            book[-3] = book[-3].split(':')
+            for i in range(len(book[-1])):
+                try:
+                    book[-1][i] = int(book[-1][i])
+                except:
+                    pass
+            for i in range(len(book)-1):
+                try:
+                    book[i] = int(book[i])
+                except:
+                    pass
+            return book
+        except:
+            return None
 
     def paramToString(self, former, next, ISBN, title, author, publisher, pubDate, category, supply, people):
         def temp(list):
@@ -239,18 +246,18 @@ class LibraryFrontEnd:
                 file = LibraryBackEnd('library-database.csv', True)
             elif (inp == '2'):
                 while file == None:
-                    print('Enter your database name:')
+                    print('Enter your database name: ("0" for default database name)')
                     fileName = input()
-                    fileNameIsCorrect = True
-                    if (fileNameIsCorrect):
-                        print('Your Database is connecting to app...\n')
-                        file = LibraryBackEnd(fileName)
-                        if (file.database == None):
+                    print('Your Database is connecting to app...\n')
+                    if fileName == "0":
+                        file = LibraryBackEnd('library-database.csv')
+                    else:
+                        try:
+                            open(fileName, 'r')
+                            file = LibraryBackEnd(fileName)
+                        except:
                             print(f'\nStandard database format:\nformer,next,ISBN,title,author,publisher,pubDate,category1:...,supply,personID1:...\nand also should have exactly one first and one last\nexample:\nNone,2,...\n1,None,...')
                             file = None
-                    else:
-                        print(
-                            f'\nYour database name is incorrect\n{self.border}')
         print(f'\nNow lets manage this library\n{self.border}')
         return file
 
@@ -271,9 +278,11 @@ class LibraryFrontEnd:
             else:
                 print('Please pay attension here')
 
-            break
-        print(self.border)
-        self.talkToMe()
+            # for debugging
+            print('first is:\t', self.back.first)
+            print('last is:\t', self.back.last)
+            print('emptyRows is:\t', self.back.emptyRows)
+            print(self.border)
 
     def addBook(self):
 
@@ -385,7 +394,54 @@ class LibraryFrontEnd:
         self.ranValue = False
 
     def removeBook(self):
-        pass
+        # define remove option
+        removeParam = None
+        while removeParam is None:
+            print('select remove option:')
+            print('1- ISBN')
+            print('2- title')
+            print('3- author')
+            print('4- publisher')
+            print('5- pubDate')
+            print('6- category')
+            print('7- supply')
+            print('8- people')
+
+            removeParam = input()
+
+            if removeParam == '1':
+                removeParam = 'ISBN'
+            elif removeParam == '2':
+                removeParam = 'title'
+            elif removeParam == '3':
+                removeParam = 'author'
+            elif removeParam == '4':
+                removeParam = 'publisher'
+            elif removeParam == '5':
+                removeParam = 'pubDate'
+            elif removeParam == '6':
+                removeParam = 'category'
+            elif removeParam == '7':
+                removeParam = 'supply'
+            elif removeParam == '8':
+                removeParam = 'people'
+            else:
+                removeParam = None
+
+        print(f'Enter {removeParam} value:')
+        value = input()
+        rows = self.back.search(removeParam, value)
+        message = 'Book(s) in '
+        if rows is not False:
+            for i in rows:
+                self.back.remove(i)
+                message += str(i)+', '
+            message = message[:-2]
+            message += ' has been removed\n'
+            print(message)
+
+        else:
+            print('Book(s) not found')
 
     def searchBook(self):
         pass
