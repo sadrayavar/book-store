@@ -80,6 +80,8 @@ class LibraryBackEnd:
         def temp(bookPlace):
             # define book and bookPlace
             book = self.readFromDatabase(bookPlace)
+            if book is None:
+                return
             formerPlace = book[0]
             nextPlace = book[1]
 
@@ -329,9 +331,6 @@ class LibraryFrontEnd:
 
             print(self.border)
 
-    def bookCount(self):
-        print('book count:\t', self.back.bookCount())
-
     def addBook(self):
 
         def inputString(what, rang):
@@ -443,38 +442,7 @@ class LibraryFrontEnd:
 
     def removeBook(self):
         # define remove option
-        removeParam = None
-        while removeParam is None:
-            print('select remove option:')
-            print('1- ISBN')
-            print('2- title')
-            print('3- author')
-            print('4- publisher')
-            print('5- pubDate')
-            print('6- category')
-            print('7- supply')
-            print('8- people')
-
-            removeParam = input()
-
-            if removeParam == '1':
-                removeParam = 'ISBN'
-            elif removeParam == '2':
-                removeParam = 'title'
-            elif removeParam == '3':
-                removeParam = 'author'
-            elif removeParam == '4':
-                removeParam = 'publisher'
-            elif removeParam == '5':
-                removeParam = 'pubDate'
-            elif removeParam == '6':
-                removeParam = 'category'
-            elif removeParam == '7':
-                removeParam = 'supply'
-            elif removeParam == '8':
-                removeParam = 'people'
-            else:
-                removeParam = None
+        removeParam = self.selectOptions('remove')
 
         print(f'Enter {removeParam} value:')
         value = input()
@@ -492,10 +460,69 @@ class LibraryFrontEnd:
             print('Book(s) not found')
 
     def searchBook(self):
-        pass
+        # define option
+        searchParam = self.selectOptions('search')
+
+        # define value
+        print(f'Enter {searchParam} value:')
+        value = input()
+
+        rows = self.back.search(searchParam, value)
+
+        message = 'Book(s) are in: '
+        if rows is not False:
+            for i in rows:
+                message += str(i)+', '
+            message = message[:-2]
+            print(message)
+
+        else:
+            print('Book(s) not found')
+
 
     def displayBooks(self):
         pass
+
+    # debug methods
+
+    def selectOptions(self, forWhat):
+        param = None
+        while param is None:
+            print(f'select {forWhat} option:')
+            print('1- ISBN')
+            print('2- Title')
+            print('3- Author')
+            print('4- Publisher')
+            print('5- Publish Date')
+            print('6- Category(s)')
+            print('7- Supply')
+            print('8- People')
+
+            param = input()
+            print()
+
+            if param == '1':
+                param = 'ISBN'
+            elif param == '2':
+                param = 'title'
+            elif param == '3':
+                param = 'author'
+            elif param == '4':
+                param = 'publisher'
+            elif param == '5':
+                param = 'pubDate'
+            elif param == '6':
+                param = 'category'
+            elif param == '7':
+                param = 'supply'
+            elif param == '8':
+                param = 'people'
+            else:
+                param = None
+        return param
+
+    def bookCount(self):
+        print('book count:\t', self.back.bookCount())
 
 
 LibraryFrontEnd()
