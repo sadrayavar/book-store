@@ -276,15 +276,15 @@ class LibraryFrontEnd:
             inp = input()
             if (inp == '1'):
                 print(
-                    '\nYour Database is created with the name of: library-database.csv')
-                file = LibraryBackEnd('library-database.csv', True)
+                    '\nYour Database is created with the name of: database.csv')
+                file = LibraryBackEnd('database.csv', True)
             elif (inp == '2'):
                 while file == None:
                     print('Enter your database name: ("0" for default database name)')
                     fileName = input()
                     print('Your Database is connecting to app...\n')
                     if fileName == "0":
-                        file = LibraryBackEnd('library-database.csv')
+                        file = LibraryBackEnd('database.csv')
                     else:
                         try:
                             open(fileName, 'r')
