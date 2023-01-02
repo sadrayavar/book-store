@@ -470,11 +470,20 @@ class LibraryFrontEnd:
 
     def removeBook(self):
         # define remove option
-        removeParam = self.selectOptions('select remove option:')
+        removeParam = self.selectOptions(
+            'select remove option: ("0" for row selection)')
 
-        print(f'Enter {removeParam[1]} value:')
-        value = input()
-        rows = self.back.search(removeParam[1], value)
+        if removeParam[0] == '0':
+            print(f'Select row (seperate by ","):')
+            rows = input()
+            rows = rows.split(',')
+            for i in range(len(rows)):
+                rows[i] = int(rows[i])
+
+        else:
+            print(f'Enter {removeParam[1]} value:')
+            value = input()
+            rows = self.back.search(removeParam[1], value)
         message = 'Book(s) in '
         if rows is not False:
             for i in rows:
@@ -590,7 +599,9 @@ class LibraryFrontEnd:
             param = [param]
             print()
 
-            if param[0] == '1':
+            if param[0] == '0':
+                pass
+            elif param[0] == '1':
                 param.append('ISBN')
             elif param[0] == '2':
                 param.append('title')
