@@ -204,7 +204,31 @@ class LibraryBackEnd:
             i += 1
             print(book[2:])
 
-    def edit(self):
+    def edit(self, line, editParam, newValue, innerParam=None):
+        if (editParam == 'ISBN'):
+            editParam = 0
+        elif (editParam == 'title'):
+            editParam = 1
+        elif (editParam == 'author'):
+            editParam = 2
+        elif (editParam == 'publisher'):
+            editParam = 3
+        elif (editParam == 'pubDate'):
+            editParam = 4
+        elif (editParam == 'category'):
+            editParam = 5
+        elif (editParam == 'supply'):
+            editParam = 6
+        elif (editParam == 'people'):
+            editParam = 7
+
+        book = self.readFromDatabase(line)
+        if innerParam is None:
+            book[editParam+2] = newValue
+        else:
+            book[editParam+2][innerParam] = newValue
+        self.writeToDatabase(book, line)
+
         pass
 
     # helper methods
@@ -274,7 +298,7 @@ class LibraryBackEnd:
 
 class LibraryFrontEnd:
     back = None
-    border = '\n##########################\n'
+    border = '\n###########################################\n'
     ranValue = False
 
     def __init__(self):
@@ -284,20 +308,21 @@ class LibraryFrontEnd:
     def configDatabase(self):
         file = None
         inp = None
-        print('\n\nWelcome!')
+        print(f'\n\nWelcome!{self.border}')
         while not (inp == '1' or inp == '2'):
             print(
-                f'\n{self.border}\nSelect start method:\n1- Create a new database\n2- Import database')
+                'Select start method:\n1- Create a new database\n2- Import database')
             inp = input()
+            print()
             if (inp == '1'):
                 print(
-                    '\nYour Database is created with the name of: database.csv')
+                    'Your Database is created with the name of: database.csv')
                 file = LibraryBackEnd('database.csv', True)
             elif (inp == '2'):
                 while file == None:
                     print('Enter your database name: ("0" for default database name)')
                     fileName = input()
-                    print('Your Database is connecting to app...\n')
+                    print('\nYour Database is connecting to app...\n')
                     if fileName == "0":
                         file = LibraryBackEnd('database.csv')
                     else:
@@ -305,7 +330,7 @@ class LibraryFrontEnd:
                             open(fileName, 'r')
                             file = LibraryBackEnd(fileName)
                         except:
-                            print(f'\nStandard database format:\nformer,next,ISBN,title,author,publisher,pubDate,category1:...,supply,personID1:...\nand also should have exactly one first and one last\nexample:\nNone,2,...\n1,None,...')
+                            print(f'\nStandard database format:\nformer,next,ISBN,title,author,publisher,pubDate,category1:...,supply,personID1:...\nand also should have exactly one first and one last\nexample:\nNone,2,...\n1,None,...\n')
                             file = None
         print(f'\nNow lets manage this library\n{self.border}')
         return file
@@ -313,8 +338,9 @@ class LibraryFrontEnd:
     def talkToMe(self):
         while True:
             print(
-                'Select one of the options below:\n1- Add\n2- Remove\n3- Search\n4- Display\n5- Counter')
+                'Select one of the options below:\n1- Add\n2- Remove\n3- Search\n4- Sort\n5- Edit\n6- Display')
             inp = input()
+            print()
 
             if (inp == '1'):
                 self.addBook()
@@ -323,11 +349,13 @@ class LibraryFrontEnd:
             elif (inp == '3'):
                 self.searchBook()
             elif (inp == '4'):
-                self.displayBooks()
+                self.sortBooks()
             elif (inp == '5'):
-                self.bookCount()
+                self.editBooks()
+            elif (inp == '6'):
+                print(f'Double click on {self.back.database} (EASY)')
             else:
-                print('Please pay attension here')
+                print('Select one of the options abow')
 
             print(self.border)
 
@@ -442,11 +470,11 @@ class LibraryFrontEnd:
 
     def removeBook(self):
         # define remove option
-        removeParam = self.selectOptions('remove')
+        removeParam = self.selectOptions('select remove option:')
 
-        print(f'Enter {removeParam} value:')
+        print(f'Enter {removeParam[1]} value:')
         value = input()
-        rows = self.back.search(removeParam, value)
+        rows = self.back.search(removeParam[1], value)
         message = 'Book(s) in '
         if rows is not False:
             for i in rows:
@@ -461,13 +489,13 @@ class LibraryFrontEnd:
 
     def searchBook(self):
         # define option
-        searchParam = self.selectOptions('search')
+        searchParam = self.selectOptions('select search option:')
 
         # define value
-        print(f'Enter {searchParam} value:')
+        print(f'Enter {searchParam[1]} value:')
         value = input()
 
-        rows = self.back.search(searchParam, value)
+        rows = self.back.search(searchParam[1], value)
 
         message = 'Book(s) are in: '
         if rows is not False:
@@ -479,16 +507,76 @@ class LibraryFrontEnd:
         else:
             print('Book(s) not found')
 
+    def sortBooks(self):
+        sortParam = self.selectOptions('select sort option:')
+        if (sortParam == 'people'):  # sort by number list
+            pass
+        elif (sortParam == 'category'):  # sort by string list
+            pass
+        elif (sortParam == 'ISBN' or sortParam == 'pubDate' or sortParam == 'supply'):  # sort by number
+            pass
+        else:  # sort by string
+            pass
+        self.back.sort(sortParam)
 
-    def displayBooks(self):
-        pass
+    def editBooks(self):
+        # input lines
+        lines = []
+        while True:
+            print('Enter the row number (0 if its done)')
+            inp = input()
+
+            if (inp == '0'):
+                if (len(lines) == 0):
+                    print('Please select some lines')
+                else:
+                    break
+            else:
+                # check if the line is empty
+                empty = False
+                lineCount = len(open(self.back.database, 'r').readlines())
+                if (int(inp) > lineCount):
+                    empty = True
+                for emptyRow in self.back.emptyRows:
+                    if int(inp) is emptyRow:
+                        empty = True
+                        break
+
+                if empty:
+                    print('line is empty')
+                else:
+                    lines.append(int(inp)+1)
+
+        editParam = self.selectOptions('\nWhat do you want to edit:')
+
+        if (editParam[1] == 'people' or editParam[1] == 'category'):
+            print(
+                f'Enter the number of {editParam[1]} that you want to edit:\nExample: 1 for first')
+            innerParam = input()
+            innerParam = int(innerParam)-1
+
+            for line in lines:
+                book = self.back.readFromDatabase(line)
+                print(
+                    f'current value is:\t{book[int(editParam[0])+1][innerParam]}\nEnter new value:')
+                newValue = input()
+
+                self.back.edit(line, editParam[1], newValue, innerParam)
+        else:
+            for line in lines:
+                book = self.back.readFromDatabase(line)
+                print(
+                    f'current value is:\t{book[int(editParam[0])+1]}\nEnter new value:')
+                newValue = input()
+
+                self.back.edit(line, editParam[1], newValue)
 
     # debug methods
 
-    def selectOptions(self, forWhat):
+    def selectOptions(self, text):
         param = None
         while param is None:
-            print(f'select {forWhat} option:')
+            print(text)
             print('1- ISBN')
             print('2- Title')
             print('3- Author')
@@ -499,30 +587,29 @@ class LibraryFrontEnd:
             print('8- People')
 
             param = input()
+            param = [param]
             print()
 
-            if param == '1':
-                param = 'ISBN'
-            elif param == '2':
-                param = 'title'
-            elif param == '3':
-                param = 'author'
-            elif param == '4':
-                param = 'publisher'
-            elif param == '5':
-                param = 'pubDate'
-            elif param == '6':
-                param = 'category'
-            elif param == '7':
-                param = 'supply'
-            elif param == '8':
-                param = 'people'
+            if param[0] == '1':
+                param.append('ISBN')
+            elif param[0] == '2':
+                param.append('title')
+            elif param[0] == '3':
+                param.append('author')
+            elif param[0] == '4':
+                param.append('publisher')
+            elif param[0] == '5':
+                param.append('pubDate')
+            elif param[0] == '6':
+                param.append('category')
+            elif param[0] == '7':
+                param.append('supply')
+            elif param[0] == '8':
+                param.append('people')
             else:
                 param = None
-        return param
 
-    def bookCount(self):
-        print('book count:\t', self.back.bookCount())
+        return param
 
 
 LibraryFrontEnd()
