@@ -207,6 +207,19 @@ class LibraryBackEnd:
 
     # helper methods
 
+    def bookCount(self):
+        if self.first == None:
+            return 0
+        else:
+            book = self.readFromDatabase(self.first)
+            nextPlace = book[1]
+            output = 1
+            while nextPlace != "None":
+                book = self.readFromDatabase(nextPlace)
+                nextPlace = book[1]
+                output += 1
+            return output
+
     def readFromDatabase(self, where):
         where -= 1
         try:
@@ -298,7 +311,7 @@ class LibraryFrontEnd:
     def talkToMe(self):
         while True:
             print(
-                'Select one of the options below:\n1- add\n2- remove\n3- search\n4- display')
+                'Select one of the options below:\n1- Add\n2- Remove\n3- Search\n4- Display\n5- Counter')
             inp = input()
 
             if (inp == '1'):
@@ -309,10 +322,15 @@ class LibraryFrontEnd:
                 self.searchBook()
             elif (inp == '4'):
                 self.displayBooks()
+            elif (inp == '5'):
+                self.bookCount()
             else:
                 print('Please pay attension here')
 
             print(self.border)
+
+    def bookCount(self):
+        print('book count:\t', self.back.bookCount())
 
     def addBook(self):
 
