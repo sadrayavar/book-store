@@ -13,16 +13,15 @@ class LibraryBackEnd:
             # read database
             rows = open(databaseName, 'r').readlines()
 
-            # search for first and last
             for i in range(len(rows)):
-
-                # convert string to list
-                rows[i] = self.stringToList(rows[i])
-                if rows[i] is not None:
+                rows[i] = self.stringToList(rows[i])  # convert string to list
+                if rows[i] == None:
+                    self.emptyRows.append(i+1)  # set empty rows
+                else:
                     if rows[i][0] == 'None':  # set first
-                        self.first = i
+                        self.first = i+1
                     if rows[i][1] == 'None':  # set last
-                        self.last = i
+                        self.last = i+1
 
             if (self.first == None):
                 print('Database does not have a first book')
@@ -81,18 +80,29 @@ class LibraryBackEnd:
         def temp(bookPlace):
             # define book and bookPlace
             book = self.readFromDatabase(bookPlace)
+            formerPlace = book[0]
+            nextPlace = book[1]
 
-            # define former book
-            if book[0] != 'None':
-                former = self.readFromDatabase(book[0])
-                former[1] = book[1]
-                self.writeToDatabase(former, book[0])
+            if formerPlace == 'None' and nextPlace == 'None':
+                pass
+            elif formerPlace == 'None':
+                self.first = nextPlace
+                next = self.readFromDatabase(nextPlace)
+                next[0] = formerPlace
+                self.writeToDatabase(next, nextPlace)
+            elif nextPlace == 'None':
+                self.last = formerPlace
+                former = self.readFromDatabase(formerPlace)
+                former[1] = nextPlace
+                self.writeToDatabase(former, formerPlace)
+            else:
+                former = self.readFromDatabase(formerPlace)
+                former[1] = nextPlace
+                self.writeToDatabase(former, formerPlace)
 
-            # define next book
-            if book[1] != 'None':
-                next = self.readFromDatabase(book[1])
-                next[0] = book[0]
-                self.writeToDatabase(next, book[1])
+                next = self.readFromDatabase(nextPlace)
+                next[0] = formerPlace
+                self.writeToDatabase(next, nextPlace)
 
             # edit book
             self.writeToDatabase('\n', bookPlace)
@@ -133,7 +143,7 @@ class LibraryBackEnd:
             exit()
 
         output = []
-        where = self.first + 1
+        where = self.first
         canBreak = False
 
         def turnBookItemsToList(book):
@@ -166,28 +176,30 @@ class LibraryBackEnd:
             return False
         else:
             return output
-    def sort(self,sortParam):
-        noOfBooks=len(open(self.database,'r').readlines())
-        if (noOfBooks<2):
-            return
-        if (sortParam=="ISBN"):
-            for i in range(noOfBooks-1):
-                book=self.readFromDatabase(i)
-                nextBook=self.readFromDatabase(i+1)
-                if (book[2]>nextBook[2]):
-                    holder=book[:2]
-                    book=nextBook[:2]+book[2:]
-                    nextBook=holder+nextBook[2:]
+
+    def sort(self, sortParam):
+        numOfBooks = len(open(self.database, 'r').readlines())
+        if (numOfBooks < 2):
+            return None
+        if (sortParam == "ISBN"):
+            for i in range(numOfBooks-1):
+                book = self.readFromDatabase(i)
+                nextBook = self.readFromDatabase(i+1)
+                if (book[2] > nextBook[2]):
+                    holder = book[:2]
+                    book = nextBook[:2]+book[2:]
+                    nextBook = holder+nextBook[2:]
                     self.remove(i+1)
-                    self.writeToDatabase(book+'\n',i+1) 
+                    self.writeToDatabase(book+'\n', i+1)
                     self.remove(i)
-                    self.writeToDatabase(nextBook+'\n',i)
+                    self.writeToDatabase(nextBook+'\n', i)
+
     def display(self):
-        noOfBooks=len(open(self.database, 'r').readlines())
-        i=0
-        while(i<noOfBooks):
-            book=self.readFromDatabase(i)
-            i+=1
+        numOfBooks = len(open(self.database, 'r').readlines())
+        i = 0
+        while (i < numOfBooks):
+            book = self.readFromDatabase(i)
+            i += 1
             print(book[2:])
 
     def edit(self):
@@ -300,10 +312,6 @@ class LibraryFrontEnd:
             else:
                 print('Please pay attension here')
 
-            # for debugging
-            print('first is:\t', self.back.first)
-            print('last is:\t', self.back.last)
-            print('emptyRows is:\t', self.back.emptyRows)
             print(self.border)
 
     def addBook(self):
@@ -470,19 +478,6 @@ class LibraryFrontEnd:
 
     def displayBooks(self):
         pass
-#tests
 
-b = LibraryBackEnd('database.csv', True)
-b.add(5, '', '', '', 0, [
-      'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
-b.add(2, '', '', '', 0, ['ali', 'hasan'], 0,  [1, 2, 3])
-b.add(4, '', '', '', 0, ['ali', ''], 0,  [1, 2])
-# b.remove(2915972317011)
-b.add(3, '', '', '', 0, [
-      'ali', 'hasan', 'qolam'], 0,  [1, 2, 3, 4])
-b.add(1, '', '', '', 0, ['ali', ''], 0,  [1, 2])
-#print(b.search('category', 'hasan'))
-#print(b.search('category', 'qolam'))
-#print(b.search('category', 'ali'))
-b.sort("ISBN")
-b.display()
+
+LibraryFrontEnd()
