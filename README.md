@@ -2,12 +2,12 @@
 
 <br>
 
-## **Anything you want**<br>You can ADD, REMOVE, SEARCH, SORT, EDIT and DISPLAY books by custom parameters.
+### **Anything you want**<br>You can ADD, REMOVE, SEARCH, SORT, EDIT and DISPLAY books by custom parameters.
 
 <br>
 <br>
 
-## **Simple as it should be**<br>You can run all of the operations above just from terminal!
+### **Simple as it should be**<br>You can run all of the operations above just from terminal!
 
 <br>
 <br>
@@ -17,17 +17,17 @@
 
 <br>
 
-## **Fast and small**<br>This application uses _.csv_ files as database
+### **Fast and small**<br>This application uses _.csv_ files as database
 
 <br>
 <br>
 
-## **More speed ?**<br>Link-list data structure used to save data
+### **More speed ?**<br>Link-list data structure used to save data
 
 <br>
 <br>
 
-## **Everything you need to know**<br>Every book has 8 parameter:
+### **Everything you need to know**<br>Every book has 8 parameter:
 
 - ISBN ( PK )
 - Title
@@ -41,7 +41,7 @@
 <br>
 <br>
 
-## **Portable**<br>You can import a ready Database file or create a new one.<br>Both with default or custom file names.
+### **Portable**<br>You can import a ready Database file or create a new one.<br>Both with default or custom file names.
 
 <br>
 
@@ -49,20 +49,20 @@
 
 <br>
 
-## **Methods**
+### **Methods**
 
 <br>
 <br>
 <br>
 
-### **ADD**
+#### **ADD**
 
 You can add random values easily for test purpose.
 
 <br>
 <br>
 
-### **REMOVE**
+#### **REMOVE**
 
 There are 2 methods to remove books:
 
@@ -75,14 +75,14 @@ There are 2 methods to remove books:
 <br>
 <br>
 
-### **SEARCH**
+#### **SEARCH**
 
 Enter the value for selected parameter to show the search result as a list of rows.
 
 <br>
 <br>
 
-### **SORT**
+#### **SORT**
 
 Select one of the valid parameters to sort the books the way you want:
 
@@ -92,14 +92,14 @@ Select one of the valid parameters to sort the books the way you want:
 <br>
 <br>
 
-### **EDIT**
+#### **EDIT**
 
 Select one or more rows, then select the parameter you want to edit<br>Now enter new value<br>Done.
 
 <br>
 <br>
 
-### **DISPLAY**
+#### **DISPLAY**
 
 Select one or more parameter to include in the result.<br>and you have the list of book data in the terminal
 
