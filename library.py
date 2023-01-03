@@ -148,19 +148,12 @@ class LibraryBackEnd:
         where = self.first
         canBreak = False
 
-        def turnBookItemsToList(book):
-            for i in range(len(book)):  # turn not list keys to list
-                if (not (isinstance(book[i], list))):
-                    temp = []
-                    temp.append(book[i])
-                    book[i] = temp
-
         while (where != 'None'):
             book = self.readFromDatabase(where)
             if (book == None):  # returns None if database is empty
                 return False
 
-            turnBookItemsToList(book)
+            self.turnBookItemsToList(book)
 
             for item in book[key]:
                 if (value == item):  # add to output list
@@ -209,13 +202,19 @@ class LibraryBackEnd:
             if (nextSwapperPlace != 'None'):
                 handle = self.readFromDatabase(nextSwapperPlace)
 
-    def display(self):
-        numOfBooks = len(open(self.database, 'r').readlines())
-        i = 0
-        while (i < numOfBooks):
-            book = self.readFromDatabase(i)
-            i += 1
-            print(book[2:])
+    def display(self, params):
+        output = []
+        place = self.first
+        while place != 'None':
+            book = self.readFromDatabase(int(place))
+            if (book == None):  # returns None if database is empty
+                return
+            temp = []
+            for param in params:
+                temp.append(book[int(param[0])+1])
+            output.append(temp)
+            place = book[1]
+        return output
 
     def edit(self, line, editParam, newValue, innerParam=None):
         if (editParam == 'ISBN'):
@@ -277,6 +276,13 @@ class LibraryBackEnd:
         self.writeToDatabase(book, bookAddress[1])
 
         return [book, handle]
+
+    def turnBookItemsToList(self, book):
+        for i in range(len(book)):  # turn not list keys to list
+            if (not (isinstance(book[i], list))):
+                temp = []
+                temp.append(book[i])
+                book[i] = temp
 
     def readFromDatabase(self, where):
         where -= 1
@@ -388,7 +394,7 @@ class LibraryFrontEnd:
             elif (inp == '5'):
                 self.editBooks()
             elif (inp == '6'):
-                print(f'Double click on {self.back.database} (EASY)')
+                self.displayBooks()
             else:
                 print('Select one of the options abow')
 
@@ -625,6 +631,40 @@ class LibraryFrontEnd:
                 newValue = input()
 
                 self.back.edit(line, editParam[1], newValue)
+
+    def displayBooks(self):
+        params = []
+        while True:
+            temp = self.selectOptions(
+                'Select a parameter to show in results:')
+            canContinue = False
+            for param in params:
+                if param[0] == temp[0]:
+                    canContinue = True
+                    break
+            if canContinue:
+                continue
+            if len(params) == 8:
+                break
+
+            params.append(temp)
+            print('1-Show result\n2- Add another parameter to results')
+            temp = input()
+            print()
+            if (temp == '1'):
+                break
+
+        result = self.back.display(params)
+
+        text = f'{self.border}\n'
+        bookCount = self.back.counter()
+        for i in range(len(result)):
+            temp = ''
+            for j in range(len(params)):
+                temp += f'{params[j][1]}:\t\t{result[i][j]}\n'
+            text += temp+'\n'
+
+        print(text[:-2])
 
     # helper methods
 
