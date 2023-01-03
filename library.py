@@ -179,22 +179,35 @@ class LibraryBackEnd:
         else:
             return output
 
-    def sort(self, sortParam):
-        numOfBooks = len(open(self.database, 'r').readlines())
-        if (numOfBooks < 2):
-            return None
-        if (sortParam == "ISBN"):
-            for i in range(numOfBooks-1):
-                book = self.readFromDatabase(i)
-                nextBook = self.readFromDatabase(i+1)
-                if (book[2] > nextBook[2]):
-                    holder = book[:2]
-                    book = nextBook[:2]+book[2:]
-                    nextBook = holder+nextBook[2:]
-                    self.remove(i+1)
-                    self.writeToDatabase(book+'\n', i+1)
-                    self.remove(i)
-                    self.writeToDatabase(nextBook+'\n', i)
+    def sort(self, sortParam, reverse):
+        param = int(sortParam[0])+1
+        bookCount = self.counter()
+        if (bookCount < 2):
+            return
+
+        handle = self.readFromDatabase(
+            self.readFromDatabase(self.first)[1])
+
+        for i in range(bookCount-1):
+            nextSwapperPlace = handle[1]
+
+            for j in range(i+1):
+                book = self.readFromDatabase(handle[0])
+
+                if reverse:
+                    condition = book[param] < handle[param]
+                else:
+                    condition = book[param] > handle[param]
+
+                if condition:  # swapper
+                    temp = self.swapper(book, handle)
+                    book = temp[0]
+                    handle = temp[1]
+                else:
+                    break
+
+            if (nextSwapperPlace != 'None'):
+                handle = self.readFromDatabase(nextSwapperPlace)
 
     def display(self):
         numOfBooks = len(open(self.database, 'r').readlines())
@@ -233,7 +246,7 @@ class LibraryBackEnd:
 
     # helper methods
 
-    def bookCount(self):
+    def counter(self):
         if self.first == None:
             return 0
         else:
@@ -245,6 +258,25 @@ class LibraryBackEnd:
                 nextPlace = book[1]
                 output += 1
             return output
+
+    def swapper(self, book, handle):
+        # data
+        bookData = book[2:]
+        handleData = handle[2:]
+
+        # address
+        bookAddress = book[0:2]
+        handleAddress = handle[0:2]
+
+        # set new book and handle
+        handle = bookAddress+handleData
+        book = handleAddress+bookData
+
+        # write to database
+        self.writeToDatabase(handle, handleAddress[0])
+        self.writeToDatabase(book, bookAddress[1])
+
+        return [book, handle]
 
     def readFromDatabase(self, where):
         where -= 1
@@ -261,6 +293,9 @@ class LibraryBackEnd:
                 what[0], what[1], what[2], what[3], what[4], what[5], what[6], what[7], what[8], what[9])
 
         rows = open(self.database, 'r').readlines()
+
+        if (what[-2:] == '\n\n'):
+            what = what[:-2]
 
         if (len(rows) <= where):
             rows.append(what)
@@ -518,15 +553,26 @@ class LibraryFrontEnd:
 
     def sortBooks(self):
         sortParam = self.selectOptions('select sort option:')
-        if (sortParam == 'people'):  # sort by number list
-            pass
-        elif (sortParam == 'category'):  # sort by string list
-            pass
-        elif (sortParam == 'ISBN' or sortParam == 'pubDate' or sortParam == 'supply'):  # sort by number
-            pass
-        else:  # sort by string
-            pass
-        self.back.sort(sortParam)
+        if sortParam[1] == 'category':
+            print('You cant sort by category parameter')
+            return
+        elif sortParam[1] == 'people':
+            print('You cant sort by people parameter')
+            return
+
+        reverse = None
+        while reverse is None:
+            print('Reverse?\n1- Yes\n2- No')
+            reverse = input()
+
+            if reverse == '1':
+                reverse = True
+            elif reverse == '2':
+                reverse = False
+            else:
+                reverse = None
+
+        self.back.sort(sortParam, reverse)
 
     def editBooks(self):
         # input lines
@@ -580,7 +626,7 @@ class LibraryFrontEnd:
 
                 self.back.edit(line, editParam[1], newValue)
 
-    # debug methods
+    # helper methods
 
     def selectOptions(self, text):
         param = None
